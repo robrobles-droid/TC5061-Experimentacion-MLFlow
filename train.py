@@ -1,17 +1,17 @@
 """Este script predice la duración (días) de ensayos clínicos oncológicos entrenando un modelo de
 bosque aleatorio.
 
-Se realizó la migración a script del modelo base del notebook de Semana 3 (TC5061). Es importante señalar 
-que en este script se  sustituye el modelo de regresión lineal que realizamos la semana pasada por un 
-modelo de bosque aleatorio porque permite variar hiperparámetros que es parte del requerimiento de la 
+Se realizó la migración a script del modelo base del notebook de Semana 3 (TC5061). Es importante señalar
+que en este script se  sustituye el modelo de regresión lineal que realizamos la semana pasada por un
+modelo de bosque aleatorio porque permite variar hiperparámetros que es parte del requerimiento de la
 actividad.
 
-El flujo del proceso es el siguiente: 1. Se cargan datos, 2. Se limpian, 3. Se dividen, 
+El flujo del proceso es el siguiente: 1. Se cargan datos, 2. Se limpian, 3. Se dividen,
 4. Se entrena, 5. Se evalúa. Cada etapa en su propia función conforme a lo solicitado.
 """
 
+import argparse
 from pathlib import Path
-
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
@@ -35,12 +35,30 @@ COLUMNAS_EXCLUIDAS = ["nct_id", "study_title", "study_status", "conditions", "in
                       "lead_sponsor", "intervention_types", "start_date", "completion_date",
                       "enrollment"]
 
-# --- Hiperparámetros del modelo ---
-N_ESTIMATORS = 200
-MAX_DEPTH = 10
-MIN_SAMPLES_LEAF = 5
+# Proporción del conjunto de prueba: fija para que todas las corridas
+# se evalúen sobre los mismos registros y sean comparables
 TEST_SIZE = 0.2
-SEMILLA = 42
+
+
+# ============================================================
+# Argumentos de línea de comandos
+# ============================================================
+
+def parsear_argumentos():
+    """Define los hiperparámetros y la semilla como argumentos, con valores por defecto."""
+    parser = argparse.ArgumentParser(
+        description="Entrena un bosque aleatorio que predice la duración (días) "
+                    "de ensayos clínicos oncológicos.",
+    )
+    parser.add_argument("--n-estimators", type=int, default=200, metavar="N",
+                        help="Número de árboles del bosque (por defecto: %(default)s)")
+    parser.add_argument("--max-depth", type=int, default=10, metavar="N",
+                        help="Profundidad máxima de cada árbol; 0 = sin límite (por defecto: %(default)s)")
+    parser.add_argument("--min-samples-leaf", type=int, default=5, metavar="N",
+                        help="Mínimo de registros en cada hoja del árbol (por defecto: %(default)s)")
+    parser.add_argument("--semilla", type=int, default=42, metavar="N",
+                        help="Semilla aleatoria para la división de datos y el bosque (por defecto: %(default)s)")
+    return parser.parse_args()
 
 
 # ============================================================
@@ -144,15 +162,20 @@ def evaluar(modelo, X, y):
 
 
 # ============================================================
-# Ejecución 
+# Ejecución
 # ============================================================
 
 def main():
+    args = parsear_argumentos()
+    max_depth = args.max_depth or None  # 0 → None (árboles sin límite de profundidad)
+    print(f"Configuración: n_estimators = {args.n_estimators} | max_depth = {max_depth} | "
+          f"min_samples_leaf = {args.min_samples_leaf} | semilla = {args.semilla}")
+
     df = limpiar_datos(cargar_datos(RUTA_DATOS))
-    X_train, X_test, y_train, y_test = dividir_datos(df, TEST_SIZE, SEMILLA)
+    X_train, X_test, y_train, y_test = dividir_datos(df, TEST_SIZE, args.semilla)
     print(f"Registros: entrenamiento = {len(X_train):,} | prueba = {len(X_test):,}")
 
-    modelo = construir_modelo(N_ESTIMATORS, MAX_DEPTH, MIN_SAMPLES_LEAF, SEMILLA)
+    modelo = construir_modelo(args.n_estimators, max_depth, args.min_samples_leaf, args.semilla)
     modelo.fit(X_train, y_train)
     referencia = entrenar_referencia(X_train, y_train)
 
