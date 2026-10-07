@@ -1,0 +1,13 @@
+# Entorno virtual: cada quien lo crea con requirements.txt
+.venv/
+
+# Registros locales de MLflow: cada ejecución genera los suyos
+mlflow.db
+mlruns/
+mlartifacts/
+
+# Archivos temporales de Python, Jupyter, macOS y Office
+__pycache__/
+.ipynb_checkpoints/
+.DS_Store
+~$*
