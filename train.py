@@ -243,8 +243,12 @@ def registrar_en_mlflow(parametros, resultados, modelo, particion):
         mlflow.log_artifact(str(ruta_grafica), artifact_path="evaluacion")
 
     # 4) Modelo: el Pipeline completo (codificación + bosque) con su firma de entrada y salida
-    X_train = particion["X_train"]
-    firma = mlflow.models.infer_signature(X_train, modelo.predict(X_train))
+        X_train = particion["X_train"]
+    # Las columnas enteras se declaran como decimales en la firma para que el modelo
+    # acepte valores faltantes al predecir (recomendación de MLflow)
+    enteras_como_decimales = {col: "float64" for col in X_train.select_dtypes("integer").columns}
+    firma = mlflow.models.infer_signature(X_train.astype(enteras_como_decimales),
+                                          modelo.predict(X_train))
     # El formato seguro (skops) exige declarar como confiable la estructura de los árboles;
     # es confiable porque el modelo lo entrenamos nosotros en esta misma corrida
     mlflow.sklearn.log_model(modelo, name="modelo", signature=firma,
