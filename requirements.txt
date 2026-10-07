@@ -1,0 +1,13 @@
+# Dependencias directas del proyecto (Python 3.13.9)
+# Versiones fijas (==) para que cualquier persona reproduzca el mismo entorno
+
+# Entrenamiento y registro de experimentos (train.py)
+pandas==3.0.6
+numpy==2.5.3
+scikit-learn==1.9.1
+mlflow==3.16.1
+matplotlib==3.11.2
+
+# Solo para el notebook de exploración (notebooks/)
+seaborn==0.13.2
+ipykernel==7.4.0
