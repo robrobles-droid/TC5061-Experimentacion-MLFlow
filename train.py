@@ -243,7 +243,7 @@ def registrar_en_mlflow(parametros, resultados, modelo, particion):
         mlflow.log_artifact(str(ruta_grafica), artifact_path="evaluacion")
 
     # 4) Modelo: el Pipeline completo (codificación + bosque) con su firma de entrada y salida
-        X_train = particion["X_train"]
+    X_train = particion["X_train"]
     # Las columnas enteras se declaran como decimales en la firma para que el modelo
     # acepte valores faltantes al predecir (recomendación de MLflow)
     enteras_como_decimales = {col: "float64" for col in X_train.select_dtypes("integer").columns}
